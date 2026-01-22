@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: safety_glass_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-safety_glass}
+      POSTGRES_USER: ${POSTGRES_USER:-safety_glass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    container_name: safety_glass_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8011:8000"   # внешний порт -> внутренний Django
+    command: >
+      bash -lc "
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000
+      "
+
+  bot:
+    build: .
+    container_name: safety_glass_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings
+    depends_on:
+      web:
+        condition: service_started
+    command: >
+      bash -lc "
+      python -m bot_app.main
+      "
+
+volumes:
+  pgdata:
