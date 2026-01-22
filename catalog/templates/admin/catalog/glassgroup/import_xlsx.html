@@ -1,0 +1,85 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="content">
+    <h1>{{ title }}</h1>
+
+    <div style="max-width: 980px;">
+      <p>
+        Импортирует группы и модели из Excel и <strong>обновляет</strong> существующие записи по колонке <code>id</code>.
+        <br>
+        Чтобы алиасы не терялись, при “удалении” мы используем <strong>деактивацию</strong>, а не физическое удаление.
+      </p>
+
+      <h2 style="margin-top: 18px;">Формат Excel (обязательно)</h2>
+      <ul style="margin-top: 8px;">
+        <li><strong>1-я строка</strong> — заголовки.</li>
+        <li>Должны быть колонки: <code>id</code>, <code>бренд</code>, <code>взаимозаменяемое стекло</code></li>
+        <li><code>id</code> — уникальный идентификатор группы, <strong>не меняйте его</strong>.</li>
+        <li><code>бренд</code> — один или несколько через запятую: <code>HOCO, PROFIT</code></li>
+        <li><code>взаимозаменяемое стекло</code> — список моделей через <code>/</code>:
+          <code>Redmi 9A/Redmi 9C/Redmi 10A</code>
+        </li>
+      </ul>
+
+      <div style="margin-top: 14px; color: #666;">
+        Подсказка: если вы убрали строку из Excel — вы можете деактивировать соответствующую группу в базе, не теряя алиасы.
+      </div>
+
+      <form method="post" enctype="multipart/form-data" style="margin-top: 18px;">
+        {% csrf_token %}
+
+        <fieldset class="module aligned">
+          <div class="form-row">
+            <div>
+              <label style="font-weight:600;">Excel файл (.xlsx):</label><br>
+              <input type="file" name="xlsx_file" accept=".xlsx" required>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top: 12px;">
+            <div>
+              <label>
+                <input type="checkbox" name="deactivate_missing_groups" checked>
+                Деактивировать группы, которых нет в Excel (не удалять)
+              </label>
+              <div class="help" style="color:#666; margin-top:6px;">
+                В базе такие группы останутся, но станут неактивными. Алиасы сохранятся.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top: 10px;">
+            <div>
+              <label>
+                <input type="checkbox" name="deactivate_missing_models" checked>
+                Деактивировать модели, которых нет в Excel (внутри каждой группы)
+              </label>
+              <div class="help" style="color:#666; margin-top:6px;">
+                Если модель удалили из строки Excel — мы выключим её, но алиасы оставим.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top: 10px;">
+            <div>
+              <label>
+                <input type="checkbox" name="clear_before_import">
+                Полная очистка базы перед импортом (опасно)
+              </label>
+              <div class="help" style="color:#b00; margin-top:6px;">
+                Удалит все группы, модели и алиасы. Используйте только если точно нужно начать с нуля.
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="submit-row" style="margin-top: 14px;">
+          <button type="submit" class="default">Импортировать</button>
+          <a href=".." class="button cancel-link" style="margin-left: 8px;">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

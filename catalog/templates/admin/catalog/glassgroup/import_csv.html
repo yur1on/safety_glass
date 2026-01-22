@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="content">
+    <h1>{{ title }}</h1>
+
+    <p>
+      Загрузите CSV в формате (заголовки обязательны):
+      <br>
+      <code>group_name, group_brands, group_description, glass_name, glass_aliases_text</code>
+    </p>
+
+    <form method="post" enctype="multipart/form-data" style="margin-top: 16px;">
+      {% csrf_token %}
+
+      <div style="margin-bottom: 12px;">
+        <label><strong>CSV файл:</strong></label><br>
+        <input type="file" name="csv_file" accept=".csv,text/csv" required>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label>
+          <input type="checkbox" name="clear_before_import">
+          Очистить все данные перед импортом
+        </label>
+      </div>
+
+      <button type="submit" class="default">Импортировать</button>
+      <a href=".." class="button cancel-link" style="margin-left: 8px;">Отмена</a>
+    </form>
+  </div>
+{% endblock %}
