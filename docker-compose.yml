@@ -6,9 +6,9 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${DB_NAME:-safety_glass}
-      POSTGRES_USER: ${DB_USER:-safety_glass}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -55,4 +55,3 @@ services:
 
 volumes:
   pgdata:
-
