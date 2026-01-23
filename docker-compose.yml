@@ -6,9 +6,9 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-safety_glass}
+      POSTGRES_USER: ${DB_USER:-safety_glass}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -16,7 +16,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-
 
   web:
     build: .
@@ -30,10 +29,11 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8011:8000"   # внешний порт -> внутренний Django
+      - "8011:8000"
     command: >
       bash -lc "
       python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
       python manage.py runserver 0.0.0.0:8000
       "
 

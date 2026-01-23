@@ -4,7 +4,7 @@ Django settings for config project.
 Локально: SQLite по умолчанию.
 На сервере/в Docker: Postgres, если выставлен USE_POSTGRES=1 (или DB_ENGINE=postgres).
 
-.env можно держать локально и на сервере разный (на сервере НЕ пушить).
+Для админки со стилями в Docker: WhiteNoise + collectstatic.
 """
 
 import os
@@ -12,10 +12,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env from project root if exists
+# Загружаем .env из корня проекта (если есть).
 load_dotenv(BASE_DIR / ".env")
 
 
@@ -51,6 +50,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise должен быть сразу после SecurityMiddleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -83,9 +85,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 # -------------------------
 # Database
 # -------------------------
-# Логика:
-# 1) По умолчанию SQLite (локальная разработка).
-# 2) Если USE_POSTGRES=1 (или DB_ENGINE=postgres) => Postgres.
 USE_POSTGRES = os.getenv("USE_POSTGRES", "0") == "1"
 DB_ENGINE = os.getenv("DB_ENGINE", "").strip().lower()
 
@@ -132,9 +131,16 @@ USE_TZ = True
 # -------------------------
 # Static files
 # -------------------------
-STATIC_URL = "static/"
-# Для продакшна (если будете собирать static):
+# ВАЖНО: должен быть слэш в начале.
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise storage для кеширования/сжатия (в проде отлично)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    }
+}
 
 
 # -------------------------
