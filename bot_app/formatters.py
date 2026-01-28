@@ -17,7 +17,16 @@ def _brands_has_common(brands: str) -> bool:
     return "общие" in parts
 
 
-def format_search_result(data: Dict[str, Any]) -> str:
+def format_search_result(data: Dict[str, Any], *, is_premium: bool, free_glasses_limit: int = 3) -> str:
+    """
+    FREE:
+      - показывает первые free_glasses_limit стекла в каждом варианте
+      - пишет, сколько ещё стекол скрыто
+      - добавляет призыв оформить premium
+
+    PREMIUM:
+      - показывает все стекла
+    """
     if not data.get("found"):
         q = _safe(data.get("query"))
         q_part = f"🔎 Запрос: <b>{q}</b>\n\n" if q else ""
@@ -26,7 +35,6 @@ def format_search_result(data: Dict[str, Any]) -> str:
             f"{q_part}"
             "Что можно сделать:\n"
             "• попробуйте другое написание (например: <b>Redmi 9A</b>)\n"
-
         )
 
     results: List[Dict[str, Any]] = data.get("results") or []
@@ -45,19 +53,23 @@ def format_search_result(data: Dict[str, Any]) -> str:
         group = item.get("group") or {}
         brands = _safe(group.get("brands"))
         is_common = _brands_has_common(brands)
-        # False < True, поэтому инвертируем: common -> 0, остальные -> 1
         return (0 if is_common else 1,)
 
     results = sorted(results, key=sort_key)
 
     max_groups = 5
-    shown = results[:max_groups]
-    remainder = max(0, len(results) - len(shown))
+    shown_groups = results[:max_groups]
+    remainder_groups = max(0, len(results) - len(shown_groups))
 
     blocks: List[str] = []
     blocks.append("✅ <b>Взаимозаменяемость стекла</b>")
 
-    for idx, item in enumerate(shown, start=1):
+    if not is_premium:
+        blocks.append(
+            "Чтобы видеть полный список подключите — /premium"
+        )
+
+    for idx, item in enumerate(shown_groups, start=1):
         matched = _safe(item.get("matched_glass"))
         group = item.get("group") or {}
         brands = _safe(group.get("brands"))
@@ -74,14 +86,17 @@ def format_search_result(data: Dict[str, Any]) -> str:
                 seen.add(g)
                 uniq.append(g)
 
-        # Обрезаем список в каждой группе
-        max_items = 80
-        shown_items = uniq[:max_items]
-        rest_items = max(0, len(uniq) - len(shown_items))
+        if is_premium:
+            shown_items = uniq
+            rest_items = 0
+        else:
+            shown_items = uniq[:max(0, int(free_glasses_limit))]
+            rest_items = max(0, len(uniq) - len(shown_items))
 
         lines = [f"• {g}" for g in shown_items] if shown_items else ["• (пусто)"]
-        if rest_items > 0:
-            lines.append(f"• …и ещё <b>{rest_items}</b>")
+
+        if not is_premium and rest_items > 0:
+            lines.append(f"🔒 Ещё <b>{rest_items}</b> стекол скрыто.")
 
         block = []
         block.append(f"\n<b>Вариант {idx}</b>")
@@ -100,10 +115,10 @@ def format_search_result(data: Dict[str, Any]) -> str:
 
         blocks.append("\n".join(block))
 
-    if remainder > 0:
+    if remainder_groups > 0:
         blocks.append(
-            f"\nℹ️ Показано <b>{len(shown)}</b> из <b>{len(results)}</b>. "
-            f"Ещё вариантов: <b>{remainder}</b>. Уточните запрос, если нужно."
+            f"\nℹ️ Показано <b>{len(shown_groups)}</b> из <b>{len(results)}</b>. "
+            f"Ещё вариантов: <b>{remainder_groups}</b>. Уточните запрос, если нужно."
         )
 
     return "\n".join(blocks).strip()
