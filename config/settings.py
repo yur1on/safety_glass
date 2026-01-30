@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
+    "analytics",
     "rest_framework",
     "import_export",
 
@@ -148,3 +148,9 @@ STORAGES = {
 # Default PK
 # -------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+
+# config/settings.py
+CHANNEL_URL = os.getenv("CHANNEL_URL", "https://t.me/+ze8-aO_YZ-Q0ZGEy")
+CHAT_URL = os.getenv("CHAT_URL", "https://t.me/+yJDx_G2b0hNjNTBi")

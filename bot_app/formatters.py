@@ -34,7 +34,7 @@ def format_search_result(data: Dict[str, Any], *, is_premium: bool, free_glasses
             "❌ <b>Совпадений не найдено</b>\n\n"
             f"{q_part}"
             "Что можно сделать:\n"
-            "• попробуйте другое написание (например: <b>Redmi 9A</b>)\n"
+            "• попробуйте другое написание.\n"
         )
 
     results: List[Dict[str, Any]] = data.get("results") or []

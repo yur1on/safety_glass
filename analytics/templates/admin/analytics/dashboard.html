@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="app-analytics">
+    <h1>{{ title }}</h1>
+
+    <form method="get" style="margin-bottom: 16px;">
+      <label>Период (дней): <input type="number" name="days" value="{{ days }}" min="1" style="width:80px;" /></label>
+      <button type="submit" class="default">Применить</button>
+    </form>
+
+    <h2>События по типам (за последние {{ days }} дн.)</h2>
+    <table class="adminlist" style="width:480px;">
+      <thead>
+        <tr><th>Тип события</th><th>Кол-во</th></tr>
+      </thead>
+      <tbody>
+        {% for item in counts_by_type %}
+        <tr>
+          <td>{{ item.event_type }}</td>
+          <td style="text-align:right">{{ item.count }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">Нет событий за выбранный период.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2 style="margin-top:20px;">Воронка (уникальные пользователи)</h2>
+    <table class="adminlist" style="width:720px;">
+      <thead>
+        <tr><th>Шаг</th><th>Пользователей</th><th>Относительно первого шага</th></tr>
+      </thead>
+      <tbody>
+        {% for s in funnel %}
+        <tr>
+          <td>{{ s.label }}</td>
+          <td style="text-align:right">{{ s.count }}</td>
+          <td style="text-align:right">{{ s.percent_from_first }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px; color:#666;">
+      <p>Подсказка: кликаем на «События бота» → «Analytics dashboard» (ссылка в адресной строке модели: <code>.../botevent/analytics-dashboard/</code>).</p>
+    </div>
+  </div>
+{% endblock %}
